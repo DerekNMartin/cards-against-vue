@@ -1,19 +1,7 @@
 <template>
-  <div class="main">
-    <div class="row">
-      <h1>Cards Against Vue</h1>
-      <button class="btn-black" @click="chooseBlackCard">Deal Black Card</button>
-      <button class="btn-white" @click="chooseHand">Deal White Cards</button>
-      <button class="button-primary" @click="clearGame">Clear Game</button>
-    </div>
-    <div class="row">
-      <button @click="previousCardInHand">Previous Card</button>
-      <button @click="nextCardInHand">Next Card</button>
-    </div>
+  <div class="container">
     <template v-if="currentBlackCard">
-      <BlackCard
-        :cardText="currentBlackCard.text">
-      </BlackCard>
+      <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
     </template>
     <template v-if="playerHand[0]">
       <div class="scrolling-wrapper">
@@ -27,11 +15,19 @@
       </template>
       </div>
     </template>
-    <template v-if="chosenCardPile">
+    <template v-if="chosenCardPile[0]">
+      <div class="col-2">
+        <p>Chosen Card:</p>
+      </div>
       <div class="row" :key="card" v-for="card in chosenCardPile">
-        <h3>Chosen Card: {{ card }}</h3>
+        <h4>{{ card }}</h4>
       </div>
     </template>
+    <div class="footer row">
+      <button class="btn-black" @click="chooseBlackCard">Black Card</button>
+      <button class="btn-white" @click="chooseHand">White Cards</button>
+      <button class="button-primary" @click="clearGame">New Game</button>
+    </div>
   </div>
 </template>
 
@@ -43,6 +39,23 @@ import WhiteCard from './WhiteCard'
 export default {
   name: 'CardsAgainstHumanity',
   components: { BlackCard, WhiteCard },
+  filters: {
+    blankSpace: (value) => {
+      const blank = value.replace(/_/g, '________')
+      return blank
+    },
+    breakString: (value) => {
+      const breakString = value.replace(/<br>/g, '\n')
+      return breakString
+    },
+    specialCharacters: (value) => {
+      let formated = value
+      formated = formated.replace(/&trade;/g, '™')
+      formated = formated.replace(/&reg;/g, '®')
+      formated = formated.replace(/&Uuml;/g, 'Ü')
+      return formated
+    },
+  },
   data() {
     return {
       blackCards: deck.blackCards,
@@ -96,24 +109,6 @@ export default {
     setCurrentCard() {
       this.currentWhiteCard = this.playerHand[this.currentCardIndex]
     },
-    // Increase the current card index, and set the current card
-    nextCardInHand() {
-      if (this.currentCardIndex >= this.playerHand.length - 1) {
-        this.currentCardIndex = 0
-      } else {
-        this.currentCardIndex += 1
-      }
-      this.setCurrentCard()
-    },
-    // Decrease the current card index, and set the current card
-    previousCardInHand() {
-      if (this.currentCardIndex <= 0) {
-        this.currentCardIndex = this.playerHand.length - 1
-      } else {
-        this.currentCardIndex -= 1
-      }
-      this.setCurrentCard()
-    },
     // Select a random card from either the black or white deck (cardType)
     randomCard(cardType) {
       const randomNumber = Math.floor(Math.random() * Math.floor(cardType.length))
@@ -146,8 +141,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  h1, h2 {
-    font-weight: normal;
+  body {
+    font-weight: 600;
+  }
+  h4 {
+    font-size: 1.5em;
+    font-weight: 600;
   }
   ul {
     list-style-type: none;
@@ -160,7 +159,14 @@ export default {
   a {
     color: #42b983;
   }
-
+  .footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    color: white;
+    text-align: center;
+  }
   .btn {
     &-white {
       color: #000000;
