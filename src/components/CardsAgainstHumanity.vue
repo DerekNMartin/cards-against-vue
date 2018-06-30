@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <p v-if="isConnected">We're connected to the server!</p>
     <template v-if="currentBlackCard">
       <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
     </template>
@@ -26,15 +27,18 @@
     <div class="footer row">
       <button class="btn-black" @click="chooseBlackCard">Black Card</button>
       <button class="btn-white" @click="chooseHand">White Cards</button>
-      <button class="button-primary" @click="clearGame">New Game</button>
+      <button class="button-primary" @click="socket.emit('newGame')">New Game</button>
     </div>
   </div>
 </template>
 
 <script>
+import io from 'socket.io-client'
 import deck from '../assets/baseSet'
 import BlackCard from './BlackCard'
 import WhiteCard from './WhiteCard'
+
+const LOCAL_ADDRESS = '192.168.2.54:8000'
 
 export default {
   name: 'CardsAgainstHumanity',
@@ -56,6 +60,11 @@ export default {
       return formated
     },
   },
+  mounted() {
+    this.isServerConnected()
+    this.listenForBlackCard()
+    this.listenForNewGame()
+  },
   data() {
     return {
       blackCards: deck.blackCards,
@@ -64,6 +73,8 @@ export default {
       currentBlackCard: null,
       chosenCardPile: [],
       chooseCardAmount: 0,
+      isConnected: false,
+      socket: io(LOCAL_ADDRESS),
     }
   },
   methods: {
@@ -74,7 +85,6 @@ export default {
      *   - Undo white card selection (commit button? / swipe up)
      *   - Choosing multiple cards, able to re-order
      */
-
     // Reset game by setting to default and clearing hand
     clearGame() {
       this.playerHand = []
@@ -135,6 +145,22 @@ export default {
     chooseBlackCard() {
       this.currentBlackCard = this.randomCard(this.blackCards)
       this.setCardAmount()
+      this.socket.emit('currentBlackCard', this.currentBlackCard)
+    },
+    listenForBlackCard() {
+      this.socket.on('serverBlackCard', (data) => {
+        this.currentBlackCard = data
+      })
+    },
+    listenForNewGame() {
+      this.socket.on('serverNewGame', () => {
+        this.clearGame()
+      })
+    },
+    isServerConnected() {
+      this.socket.on('isConnected', (data) => {
+        this.isConnected = data
+      })
     },
   },
 }

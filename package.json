@@ -11,12 +11,20 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "bufferutil": "^3.0.5",
+    "express": "^4.16.3",
+    "node-loader": "^0.6.0",
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.7",
     "scss-loader": "^0.0.1",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1",
+    "utf-8-validate": "^4.0.2",
+    "uws": "^10.148.1",
     "vswipe": "^1.0.1",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vue-socket.io": "^2.1.1-b"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
