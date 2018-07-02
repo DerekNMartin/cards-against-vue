@@ -1,6 +1,7 @@
 <template>
   <div class="container">
-    <p v-if="isConnected">We're connected to the server!</p>
+    <p v-if="socket.connected">We're connected to the server!</p>
+    <p v-if="isCzar">You are the Czar!</p>
     <template v-if="currentBlackCard">
       <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
     </template>
@@ -11,28 +12,23 @@
           :key="card"
           v-on:select-card="selectCard"
           :cardText="card"
-          :cardIndex="index">
+          :cardIndex="index"
+          :selectedCards="chosenWhiteCards">
         </WhiteCard>
       </template>
-      </div>
-    </template>
-    <template v-if="chosenCardPile[0]">
-      <div class="col-2">
-        <p>Chosen Card:</p>
-      </div>
-      <div class="row" :key="card" v-for="card in chosenCardPile">
-        <h4>{{ card }}</h4>
       </div>
     </template>
     <div class="footer row">
       <button class="btn-black" @click="chooseBlackCard">Black Card</button>
       <button class="btn-white" @click="chooseHand">White Cards</button>
       <button class="button-primary" @click="socket.emit('newGame')">New Game</button>
+      <button class="button-primary" @click="setCzar()">Set Czar</button>
     </div>
   </div>
 </template>
 
 <script>
+/* eslint-disable no-console */
 import io from 'socket.io-client'
 import deck from '../assets/baseSet'
 import BlackCard from './BlackCard'
@@ -61,9 +57,18 @@ export default {
     },
   },
   mounted() {
-    this.isServerConnected()
     this.listenForBlackCard()
     this.listenForNewGame()
+  },
+  computed: {
+    /* eslint-disable object-shorthand, func-names */
+    pickLimitReached: function () {
+      if (this.currentBlackCard) {
+        return this.chosenWhiteCards.length >= this.currentBlackCard.pick
+      }
+      return false
+    },
+    /* eslint-enable object-shorthand, func-names */
   },
   data() {
     return {
@@ -71,9 +76,8 @@ export default {
       whiteCards: deck.whiteCards,
       playerHand: [],
       currentBlackCard: null,
-      chosenCardPile: [],
-      chooseCardAmount: 0,
-      isConnected: false,
+      chosenWhiteCards: [],
+      isCzar: false,
       socket: io(LOCAL_ADDRESS),
     }
   },
@@ -88,36 +92,25 @@ export default {
     // Reset game by setting to default and clearing hand
     clearGame() {
       this.playerHand = []
-      this.chosenCardPile = []
+      this.chosenWhiteCards = []
       this.currentBlackCard = null
-      this.chooseCardAmount = 0
-    },
-    // Determine number of cards to select based on Black Card
-    setCardAmount() {
-      const _selectionCount = this.currentBlackCard.text
-        .split('')
-        .filter(char => char === '_')
-        .length
-      this.chooseCardAmount = _selectionCount === 0 ? 1 : _selectionCount
     },
     /*
-     * On click, put the current card in the selected pile
-     * Remove it from the player's hand
-     * Set the new current card
-     * Limit player to selecting only 1 or 2 cards depending on black card
+     * On click event:
+     * if the card has already been selected and player wants to deselect it
+     * then remove it from the chosen pile
+     * if the pick limit has been reached then we can't pick anymore cards
+     * select the card if the other conditions are false
      */
     selectCard(card) {
-      if (this.chooseCardAmount !== 0
-        && this.chosenCardPile.length >= this.chooseCardAmount) {
-        // Can't choose card! Message here
+      if (card.selected) {
+        const indexOfCard = this.chosenWhiteCards.indexOf(card.text)
+        this.chosenWhiteCards.splice(indexOfCard, 1)
+      } else if (this.pickLimitReached) {
+        console.log('CARD LIMIT REACHED')
       } else {
-        this.chosenCardPile.push(card.text)
-        this.playerHand.splice(card.index, 1)
+        this.chosenWhiteCards.push(card.text)
       }
-    },
-    // Set the Current Viewable card
-    setCurrentCard() {
-      this.currentWhiteCard = this.playerHand[this.currentCardIndex]
     },
     // Select a random card from either the black or white deck (cardType)
     randomCard(cardType) {
@@ -129,23 +122,27 @@ export default {
       this.playerHand = []
     },
     // Choose ten random cards from the white card deck, set the player's hand
+    // TODO refactor to use map/reduce/filter
     chooseHand() {
       if (this.currentBlackCard) {
-        const numberOfCards = 10
         this.clearHand()
-        for (let i = 0; i < numberOfCards; i += 1) {
-          this.playerHand.push(this.randomCard(this.whiteCards))
-        }
-        this.setCurrentCard()
+        this.chooseCards(10)
       } else {
-        // Woops! You need to pick a black card first!
+        console.log('Woops! You need to pick a black card first!')
+      }
+    },
+    chooseCards(numberOfCards) {
+      for (let i = 0; i < numberOfCards; i += 1) {
+        this.playerHand.push(this.randomCard(this.whiteCards))
       }
     },
     // Choose a random black card
     chooseBlackCard() {
       this.currentBlackCard = this.randomCard(this.blackCards)
-      this.setCardAmount()
       this.socket.emit('currentBlackCard', this.currentBlackCard)
+    },
+    setCzar() {
+      this.isCzar = !this.isCzar
     },
     listenForBlackCard() {
       this.socket.on('serverBlackCard', (data) => {
@@ -155,11 +152,6 @@ export default {
     listenForNewGame() {
       this.socket.on('serverNewGame', () => {
         this.clearGame()
-      })
-    },
-    isServerConnected() {
-      this.socket.on('isConnected', (data) => {
-        this.isConnected = data
       })
     },
   },
