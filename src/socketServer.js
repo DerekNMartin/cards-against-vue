@@ -11,10 +11,10 @@ const server = app.listen(PORT, () => {
 const io = require('socket.io')(server)
 
 io.on('connection', (socket) => {
-  console.log('Someone Connect!', socket.id)
-  io.emit('isConnected', true)
+  console.log('Client Connect!')
+
   socket.on('disconnect', (reason) => {
-    console.log('Someone Disconnected!', reason)
+    console.log('Client Disconnected!', reason)
   })
   socket.on('currentBlackCard', (data) => {
     io.emit('serverBlackCard', data)
