@@ -1,5 +1,6 @@
 <template>
-  <div @click="selectCard(card)" class="card">
+  <div @click="selectCard(card)"
+  :class="isSelected ? 'card card--selected' : 'card'">
     <div class="card__text">
       {{ cardText | specialCharacters }}
     </div>
@@ -17,7 +18,7 @@
 <script>
 module.exports = {
   name: 'WhiteCard',
-  props: ['cardText', 'cardIndex'],
+  props: ['cardText', 'cardIndex', 'selectedCards'],
   filters: {
     specialCharacters: (value) => {
       let formated = value
@@ -33,7 +34,11 @@ module.exports = {
       return {
         text: this.cardText,
         index: this.cardIndex,
+        selected: this.isSelected,
       }
+    },
+    isSelected: function () {
+      return (this.selectedCards.indexOf(this.cardText) !== -1)
     },
   },
   /* eslint-enable object-shorthand, func-names */
@@ -57,6 +62,10 @@ module.exports = {
     padding: 1em;
     background: #FFFFFF;
     position: relative;
+    transition: transform 0.2s ease-in-out;
+    &--selected {
+      transform: scale(0.9);
+    }
     &__text {
       font-size: 1.5em;
       font-weight: 600;
