@@ -38,7 +38,10 @@ module.exports = {
       }
     },
     isSelected: function () {
-      return (this.selectedCards.indexOf(this.cardText) !== -1)
+      if (this.selectedCards) {
+        return (this.selectedCards.indexOf(this.cardText) !== -1)
+      }
+      return false
     },
   },
   /* eslint-enable object-shorthand, func-names */

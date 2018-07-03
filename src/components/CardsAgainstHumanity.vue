@@ -5,25 +5,40 @@
     <template v-if="currentBlackCard">
       <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
     </template>
-    <template v-if="playerHand[0]">
-      <div class="scrolling-wrapper">
-      <template v-for="(card, index) in playerHand">
-        <WhiteCard
-          :key="card"
-          v-on:select-card="selectCard"
-          :cardText="card"
-          :cardIndex="index"
-          :selectedCards="chosenWhiteCards">
-        </WhiteCard>
+    <template v-if="isCzar">
+      <template v-for="playerSelections in confirmedWhiteCards">
+        {{ playerSelections.id }}
+        <div :key="playerSelections.id" class="scrolling-wrapper">
+          <WhiteCard
+            v-for="card in playerSelections.cards"
+            :key="card"
+            :cardText="card">
+          </WhiteCard>
+        </div>
       </template>
+    </template>
+    <template v-else>
+      <template v-if="playerHand[0]">
+      <div class="scrolling-wrapper">
+        <template v-for="(card, index) in playerHand">
+          <WhiteCard
+            :key="card"
+            v-on:select-card="selectCard"
+            :cardText="card"
+            :cardIndex="index"
+            :selectedCards="chosenWhiteCards">
+          </WhiteCard>
+        </template>
+        </div>
+      </template>
+      <div class="footer row">
+        <button class="btn-black" @click="chooseBlackCard">Black Card</button>
+        <button class="btn-white" @click="chooseHand">White Cards</button>
+        <button class="button-primary" @click="socket.emit('newGame')">New Game</button>
+        <button class="button-primary" @click="confirmCards()">Confirm Cards</button>
+        <button class="button-primary" @click="setCzar()">Set Czar</button>
       </div>
     </template>
-    <div class="footer row">
-      <button class="btn-black" @click="chooseBlackCard">Black Card</button>
-      <button class="btn-white" @click="chooseHand">White Cards</button>
-      <button class="button-primary" @click="socket.emit('newGame')">New Game</button>
-      <button class="button-primary" @click="setCzar()">Set Czar</button>
-    </div>
   </div>
 </template>
 
@@ -59,6 +74,7 @@ export default {
   mounted() {
     this.listenForBlackCard()
     this.listenForNewGame()
+    this.listenForConfirmedCards()
   },
   computed: {
     /* eslint-disable object-shorthand, func-names */
@@ -79,21 +95,16 @@ export default {
       chosenWhiteCards: [],
       isCzar: false,
       socket: io(LOCAL_ADDRESS),
+      confirmedWhiteCards: [],
     }
   },
   methods: {
-    /*
-     * TO DO:
-     *   - Horizontal Scroll - COMPLETE
-     *   - If no card amount is set - can't select a card
-     *   - Undo white card selection (commit button? / swipe up)
-     *   - Choosing multiple cards, able to re-order
-     */
     // Reset game by setting to default and clearing hand
     clearGame() {
       this.playerHand = []
       this.chosenWhiteCards = []
       this.currentBlackCard = null
+      this.confirmedWhiteCards = []
     },
     /*
      * On click event:
@@ -144,6 +155,13 @@ export default {
     setCzar() {
       this.isCzar = !this.isCzar
     },
+    confirmCards() {
+      const _chosenCards = {
+        id: this.socket.id,
+        cards: this.chosenWhiteCards,
+      }
+      this.socket.emit('confirmSelection', _chosenCards)
+    },
     listenForBlackCard() {
       this.socket.on('serverBlackCard', (data) => {
         this.currentBlackCard = data
@@ -152,6 +170,11 @@ export default {
     listenForNewGame() {
       this.socket.on('serverNewGame', () => {
         this.clearGame()
+      })
+    },
+    listenForConfirmedCards() {
+      this.socket.on('confirmedWhiteCards', (data) => {
+        this.confirmedWhiteCards = data
       })
     },
   },

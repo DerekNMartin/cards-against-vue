@@ -7,11 +7,19 @@ const PORT = 8000
 const server = app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`)
 })
-
 const io = require('socket.io')(server)
+
+let SELECTED_WHITE_CARDS = []
+
+function resetGame() {
+  io.emit('serverNewGame')
+  SELECTED_WHITE_CARDS = []
+  console.log('New Game')
+}
 
 io.on('connection', (socket) => {
   console.log('Client Connect!')
+  resetGame()
 
   socket.on('disconnect', (reason) => {
     console.log('Client Disconnected!', reason)
@@ -21,7 +29,11 @@ io.on('connection', (socket) => {
     console.log('Current Black Card: ', data.text)
   })
   socket.on('newGame', () => {
-    io.emit('serverNewGame')
-    console.log('New Game')
+    resetGame()
+  })
+  socket.on('confirmSelection', (data) => {
+    SELECTED_WHITE_CARDS.push(data)
+    io.emit('confirmedWhiteCards', SELECTED_WHITE_CARDS)
+    console.log('Selected Cards:', SELECTED_WHITE_CARDS)
   })
 })
