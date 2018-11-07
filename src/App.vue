@@ -15,8 +15,8 @@ export default {
 @import './assets/SkeletonCSS/skeleton.css';
 
 body {
-  color: #FFF;
-  background-color: #000;
+  color: #181A24;
+  background-color: #FFFFFF;
 }
 
 #app {
@@ -25,5 +25,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   margin-top: 30px;
+}
+.container {
+  padding: 0 !important;
 }
 </style>

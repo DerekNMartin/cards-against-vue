@@ -1,11 +1,13 @@
 <template>
   <div class="container">
-    <p v-if="socket.connected">We're connected to the server!</p>
-    <p v-if="isCzar">You are the Czar!</p>
-    <template v-if="currentBlackCard">
-      <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
+    <p v-if="!socket.connected">No Connection</p>
+    <template v-if="newGame">
+      <button class="button-primary" @click="setCzar()">Czar</button>
+      <button class="button-primary" @click="setPlayer()">Player</button>
     </template>
+    <!-- Make this a vue component -->
     <template v-if="isCzar">
+      <p>You are the Czar!</p>
       <template v-for="playerSelections in confirmedWhiteCards">
         {{ playerSelections.id }}
         <div :key="playerSelections.id" class="scrolling-wrapper">
@@ -16,8 +18,20 @@
           </WhiteCard>
         </div>
       </template>
+      <template v-if="currentBlackCard">
+        <BlackCard
+          :cardText="currentBlackCard.text">
+        </BlackCard>
+      </template>
+      <div class="footer row">
+        <button class="btn-black" @click="chooseBlackCard">Black Card</button>
+      </div>
     </template>
-    <template v-else>
+    <!-- Make this a vue component -->
+    <template v-if="!isCzar && isPlayer">
+      <template v-if="currentBlackCard">
+        <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
+      </template>
       <template v-if="playerHand[0]">
       <div class="scrolling-wrapper">
         <template v-for="(card, index) in playerHand">
@@ -32,11 +46,8 @@
         </div>
       </template>
       <div class="footer row">
-        <button class="btn-black" @click="chooseBlackCard">Black Card</button>
-        <button class="btn-white" @click="chooseHand">White Cards</button>
-        <button class="button-primary" @click="socket.emit('newGame')">New Game</button>
-        <button class="button-primary" @click="confirmCards()">Confirm Cards</button>
-        <button class="button-primary" @click="setCzar()">Set Czar</button>
+        <button class="btn-white" @click="chooseHand">Choose Hand</button>
+        <button class="button-primary" @click="emitConfirmCards()">Confirm Cards</button>
       </div>
     </template>
   </div>
@@ -49,7 +60,15 @@ import deck from '../assets/baseSet'
 import BlackCard from './BlackCard'
 import WhiteCard from './WhiteCard'
 
-const LOCAL_ADDRESS = '192.168.2.54:8000'
+// Should be an env variable
+const LOCAL_ADDRESS = '192.168.1.95:8000'
+
+/*
+ * TO DO:
+ * - Design
+ * - Players pick from deck on server side. (No duplicates.)
+ * - Create Menu to start game
+ */
 
 export default {
   name: 'CardsAgainstHumanity',
@@ -88,12 +107,14 @@ export default {
   },
   data() {
     return {
+      isCzar: false,
+      isPlayer: false,
+      newGame: true,
       blackCards: deck.blackCards,
       whiteCards: deck.whiteCards,
       playerHand: [],
       currentBlackCard: null,
       chosenWhiteCards: [],
-      isCzar: false,
       socket: io(LOCAL_ADDRESS),
       confirmedWhiteCards: [],
     }
@@ -101,6 +122,7 @@ export default {
   methods: {
     // Reset game by setting to default and clearing hand
     clearGame() {
+      this.newGame = true
       this.playerHand = []
       this.chosenWhiteCards = []
       this.currentBlackCard = null
@@ -153,14 +175,25 @@ export default {
       this.socket.emit('currentBlackCard', this.currentBlackCard)
     },
     setCzar() {
+      this.newGame = false
       this.isCzar = !this.isCzar
     },
-    confirmCards() {
+    setPlayer() {
+      if (this.isCzar) {
+        console.log('There is already a Czar chosen!')
+      } else {
+        this.isPlayer = !this.isPlayer
+      }
+    },
+    emitConfirmCards() {
       const _chosenCards = {
         id: this.socket.id,
         cards: this.chosenWhiteCards,
       }
       this.socket.emit('confirmSelection', _chosenCards)
+    },
+    emitNewGame() {
+      this.socket.emit('newGame')
     },
     listenForBlackCard() {
       this.socket.on('serverBlackCard', (data) => {
@@ -230,6 +263,8 @@ export default {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
+    padding: 2em 0;
+    height: 450px;
     -webkit-overflow-scrolling: touch;
     &::-webkit-scrollbar {
       display: none;

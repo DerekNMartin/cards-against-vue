@@ -55,19 +55,26 @@ module.exports = {
 
 <style scoped lang='scss'>
   .card {
+    background: #FFFFFF;
+    border: 1px solid #E7E7E7;
+    box-sizing: border-box;
+    border-radius: 10px;
+    font-weight: bold;
+    line-height: normal;
+    font-size: 1em;
+    color: #181A24;
     flex: 0 0 auto;
-    border-radius: 5px;
-    border: 3px solid;
-    color: #000000;
     text-align: left;
     width: 250px;
     height: 350px;
     padding: 1em;
-    background: #FFFFFF;
+    margin: 1em;
     position: relative;
-    transition: transform 0.2s ease-in-out;
+    box-shadow: 2px 2px 10px rgba(24, 26, 36, 0.25);
+    transition: transform 0.3s ease-in-out, box-shadow 0.1s ease-in;
     &--selected {
-      transform: scale(0.9);
+      box-shadow: 2px 15px 30px rgba(24, 26, 36, 0.15);
+      transform: scale(1.2)
     }
     &__text {
       font-size: 1.5em;
