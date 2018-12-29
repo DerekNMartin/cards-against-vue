@@ -71,10 +71,10 @@ module.exports = {
     margin: 1em;
     position: relative;
     box-shadow: 2px 2px 10px rgba(24, 26, 36, 0.25);
-    transition: transform 0.3s ease-in-out, box-shadow 0.1s ease-in;
+    transition: transform 0.2s ease-in-out, box-shadow 0.1s ease-in;
     &--selected {
       box-shadow: 2px 15px 30px rgba(24, 26, 36, 0.15);
-      transform: scale(1.2)
+      transform: scale(1.1)
     }
     &__text {
       font-size: 1.5em;

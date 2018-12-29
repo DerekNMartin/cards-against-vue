@@ -1,10 +1,11 @@
 <template>
   <div class="container">
     <p v-if="!socket.connected">No Connection</p>
-    <template v-if="newGame">
-      <button class="button-primary" @click="setCzar()">Czar</button>
-      <button class="button-primary" @click="setPlayer()">Player</button>
-    </template>
+    <Menu
+      v-on:setNewGame="emitNewGame"
+      v-on:setCzar="setCzar"
+      v-on:setPlayer="setPlayer">
+    </Menu>
     <!-- Make this a vue component -->
     <template v-if="isCzar">
       <p>You are the Czar!</p>
@@ -30,7 +31,9 @@
     <!-- Make this a vue component -->
     <template v-if="!isCzar && isPlayer">
       <template v-if="currentBlackCard">
-        <h4>{{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}</h4>
+        <div class="header__black-card">
+          {{ currentBlackCard.text | blankSpace | breakString | specialCharacters}}
+        </div>
       </template>
       <template v-if="playerHand[0]">
       <div class="scrolling-wrapper">
@@ -59,6 +62,7 @@ import io from 'socket.io-client'
 import deck from '../assets/baseSet'
 import BlackCard from './BlackCard'
 import WhiteCard from './WhiteCard'
+import Menu from './Menu'
 
 // Should be an env variable
 const LOCAL_ADDRESS = '192.168.1.95:8000'
@@ -72,7 +76,7 @@ const LOCAL_ADDRESS = '192.168.1.95:8000'
 
 export default {
   name: 'CardsAgainstHumanity',
-  components: { BlackCard, WhiteCard },
+  components: { BlackCard, WhiteCard, Menu },
   filters: {
     blankSpace: (value) => {
       const blank = value.replace(/_/g, '________')
@@ -232,6 +236,13 @@ export default {
   }
   a {
     color: #42b983;
+  }
+  .header {
+    &__black-card {
+      padding: 2em 0.5em;
+      font-weight: 600;
+      font-size: 1.5em;
+    }
   }
   .footer {
     position: fixed;
