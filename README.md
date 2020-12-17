@@ -1,6 +1,6 @@
 # cards-against-humanity
 
-> Cards Against Humanity built with Vue.JS
+> Cards Against Humanity built with Vue.JS & SocketIO
 
 ## Build Setup
 
