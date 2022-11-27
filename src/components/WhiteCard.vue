@@ -1,92 +1,38 @@
-<template>
-  <div @click="selectCard(card)"
-  :class="isSelected ? 'card card--selected' : 'card'">
-    <div class="card__text">
-      {{ cardText | specialCharacters }}
-    </div>
-    <div class="card__footer">
-      <div class="card__footer-title">
-        Cards Against Vue
-      </div>
-      <div class="card__footer-index">
-        {{ cardIndex }}
-      </div>
-    </div>
-  </div>
-</template>
+<script setup>
+import { computed, defineProps } from 'vue'
 
-<script>
-module.exports = {
-  name: 'WhiteCard',
-  props: ['cardText', 'cardIndex', 'selectedCards'],
-  filters: {
-    specialCharacters: (value) => {
-      let formated = value
-      formated = formated.replace(/&trade;/g, '™')
-      formated = formated.replace(/&reg;/g, '®')
-      formated = formated.replace(/&Uuml;/g, 'Ü')
-      return formated
-    },
-  },
-  /* eslint-disable object-shorthand, func-names */
-  computed: {
-    card: function () {
-      return {
-        text: this.cardText,
-        index: this.cardIndex,
-        selected: this.isSelected,
-      }
-    },
-    isSelected: function () {
-      if (this.selectedCards) {
-        return (this.selectedCards.indexOf(this.cardText) !== -1)
-      }
-      return false
-    },
-  },
-  /* eslint-enable object-shorthand, func-names */
-  methods: {
-    selectCard(card) {
-      this.$emit('select-card', card)
-    },
-  },
-}
+const props = defineProps({
+  cardText: String,
+  cardIndex: Number,
+  selectedCards: Array
+})
+
+const card = computed(() => {
+  return {
+    text: props.cardText,
+    index: props.cardIndex,
+    selected: props.isSelected,
+  }
+})
+
+const isSelected = computed(() => {
+  if (props.selectedCards) {
+    return (props.selectedCards.indexOf(props.cardText) !== -1)
+  }
+  return false
+})
 </script>
 
-<style scoped lang='scss'>
-  .card {
-    flex: 0 0 auto;
-    border-radius: 5px;
-    border: 3px solid;
-    color: #000000;
-    text-align: left;
-    width: 250px;
-    height: 350px;
-    padding: 1em;
-    background: #FFFFFF;
-    position: relative;
-    transition: transform 0.2s ease-in-out;
-    &--selected {
-      transform: scale(0.9);
-    }
-    &__text {
-      font-size: 1.5em;
-      font-weight: 600;
-    }
-    &__footer {
-      width: 85%;
-      font-weight: 600;
-      padding-bottom: 1em;
-      position: absolute;
-      bottom: 10px;
-      &-title {
-        display: inline-block;
-      }
-      &-index {
-        position: absolute;
-        display: inline-block;
-        right: 0;
-      }
-    }
-  }
-</style>
+<template>
+  <article @click="$emit('select-card', card)"
+    class="flex flex-col justify-between rounded-md border-2 border-solid min-w-[250px] h-80 p-4 bg-white transition-transform border-black"
+    :class="{'scale-90':isSelected}">
+    <p class="text-2xl font-bold">
+      {{ cardText  }}
+    </p>
+    <footer class="flex justify-between items-center">
+      <p class="font-bold">#{{ cardIndex + 1 }}</p>
+      <p class="text-xs">Cards Against Vue</p>
+    </footer>
+  </article>
+</template>
