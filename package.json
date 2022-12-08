@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "bufferutil": "^3.0.5",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "node-loader": "^0.6.0",
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.7",
